@@ -79,9 +79,10 @@ const start = async (): Promise<void> => {
     }
 
     if (Config.dev_mode) {
-        client.on("error", logger.error);
-        client.on("warn", logger.warn);
-    }
+        client.on("error", (err) => logger.error(err));
+        client.on("warn", (warn) => logger.warn(warn));
+    }   
+
 
     await client.login(discordApiInfo.api_token);
 };

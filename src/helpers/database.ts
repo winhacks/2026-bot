@@ -41,7 +41,7 @@ export const GetHacker = async (discordId: string) => {
 };
 
 export const DeleteHacker = async (discordId: string) => {
-    return await prisma.hacker.delete({where: {discordId}});
+    return await prisma.hacker.deleteMany({where: {discordId}});
 };
 
 export const IsEmailVerified = async (email: string): Promise<boolean> => {

@@ -18,7 +18,7 @@ export const AuthenticateGoogleAPI = async () => {
 };
 
 export const BuildRange = (sheet: string, startCell: string, endCell: string) => {
-    return `${sheet}!${startCell}:${endCell}`;
+    return `'${sheet}'!${startCell}:${endCell}`;
 };
 
 export const BuildSingleCellRange = (sheet: string, cell: string) => {

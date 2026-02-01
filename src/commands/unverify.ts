@@ -1,13 +1,14 @@
 import {SlashCommandBuilder} from "@discordjs/builders";
 import {CacheType, ChatInputCommandInteraction, Guild, GuildMember} from "discord.js";
 import {Config} from "../config";
-import {GetHacker, GetHackerTeam} from "../helpers/database";
+import {GetHacker, DeleteHacker, GetHackerTeam} from "../helpers/database";
 import {PrettyUser} from "../helpers/misc";
 import {ErrorMessage, SafeReply, SuccessMessage} from "../helpers/responses";
-import {TakeUserRole} from "../helpers/userManagement";
+import {TakeUserRole, RenameUser} from "../helpers/userManagement";
 import {logger} from "../logger";
 import {CommandType} from "../types";
 import {NotInGuildResponse} from "./team/team-shared";
+
 
 const unverifyModule: CommandType = {
     data: new SlashCommandBuilder()
@@ -49,7 +50,8 @@ const unverifyModule: CommandType = {
 
         try {
             await HandleUnverify(guild, member);
-        } catch {
+        } catch (err) {
+            logger.error("Unverify error:", err); // Log the actual error
             return await SafeReply(intr, ErrorMessage());
         }
 
@@ -60,8 +62,11 @@ const unverifyModule: CommandType = {
 };
 
 const HandleUnverify = async (guild: Guild, member: GuildMember): Promise<void> => {
+    // Delete from database FIRST
+    await DeleteHacker(member.user.id); // You need to implement this function
+    
     if (Config.verify.verified_role_name) {
-        const verifiedRole = guild.roles.cache.findKey(
+        const verifiedRole = guild.roles.cache.find( // Changed from findKey to find
             (r) => r.name === Config.verify.verified_role_name
         );
 
@@ -71,12 +76,18 @@ const HandleUnverify = async (guild: Guild, member: GuildMember): Promise<void> 
 
         const takeUserRoleErr = await TakeUserRole(member, verifiedRole);
         if (takeUserRoleErr) {
+            logger.error(takeUserRoleErr); // Log the error
             throw Error(takeUserRoleErr);
         }
 
         if (member.user.id !== guild.ownerId) {
-            await member.setNickname(null, "User unverified");
+            const renameErr = await RenameUser(member, null); // Use the RenameUser function
+            if (renameErr) {
+                logger.error(renameErr); // Log the error
+                throw Error(renameErr);
+            }
         }
     }
 };
+
 export {unverifyModule as command};
