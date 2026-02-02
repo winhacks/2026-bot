@@ -34,7 +34,12 @@ export const ParseInviteButtonId = (buttonId: string) => {
 
 const inviteAction: ButtonAction = {
     execute: async (intr: ButtonInteraction<CacheType>) => {
+        console.log("=== INVITE BUTTON CLICKED ===");
+        console.log("User:", intr.user.tag);
+        console.log("Button ID:", intr.customId);
+        
         const existingHacker = await GetHacker(intr.user.id);
+        console.log("Existing hacker:", existingHacker ? "Found" : "Not found");
         if (!existingHacker) {
             const joinLink = hyperlink(
                 `${Config.bot_info.event_name} Discord server`,
@@ -113,17 +118,26 @@ const HandleOfferAccept = async (
     invite: Invite,
     intr: ButtonInteraction<CacheType>
 ): Promise<{response?: string; error?: string}> => {
-    const guildId = Config.dev_mode ? Config.development.guild : Config.production.guild;
-    const guild = await intr.client.guilds.fetch(guildId);
+    console.log("=== HANDLE OFFER ACCEPT ===");
+    console.log("Team:", team.displayName);
+    console.log("User:", intr.user.tag);
+    
+    try {
+        const guildId = Config.dev_mode ? Config.development.guild : Config.production.guild;
+        const guild = await intr.client.guilds.fetch(guildId);
 
-    await HandleMemberJoin(guild, team, intr.user.id);
-    await WithTransaction(async () => {
-        await DeleteInvite(invite.inviteeId, invite.teamStdName);
-        await AddHackerToTeam(team.stdName, intr.user.id);
-        return true;
-    });
+        await HandleMemberJoin(guild, team, intr.user.id);
+        await WithTransaction(async () => {
+            await DeleteInvite(invite.inviteeId, invite.teamStdName);
+            await AddHackerToTeam(team.stdName, intr.user.id);
+            return true;
+        });
 
-    return {response: `You joined ${team.displayName} ${time(Date.now())}`};
+        return {response: `You joined ${team.displayName} ${time(Date.now())}`};
+    } catch (error) {
+        console.error("ERROR IN HANDLE OFFER ACCEPT:", error);
+        return {error: "Something went wrong"}; // This return was missing!
+    }
 };
 
 const HandleOfferDecline = async (

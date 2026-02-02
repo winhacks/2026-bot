@@ -3,9 +3,11 @@ import {ErrorMessage} from "../helpers/responses";
 import {logger} from "../logger";
 import {ButtonAction, ClientType, EventType} from "../types";
 import { action as voteAction } from "./buttons/vote";
+import { action as inviteAction } from "./buttons/invite";
 
 const handlers = new Collection<string, ButtonAction>();
 handlers.set("vote", voteAction);
+handlers.set("invite", inviteAction); 
 
 const buttonHandlerModule: EventType = {
     eventName: "interactionCreate",
